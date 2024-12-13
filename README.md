@@ -1,6 +1,6 @@
 Welcome To Employees management with Java connect to Database.
 
-Open IntelliJ, ccreate new project and choose Maven for project.
+Open IntelliJ, create new project and choose Maven for project.
 
 Set up pom.xml file
 ```
