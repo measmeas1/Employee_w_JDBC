@@ -1,6 +1,8 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,6 +12,9 @@ import javafx.stage.Stage;
 
 
 public class EmployeeManagement extends Application {
+
+    private TableView<Employee> table;
+    private ObservableList<Employee> employeeData;
 
     @Override
     public void start(Stage primaryStage) {
@@ -44,6 +49,7 @@ public class EmployeeManagement extends Application {
         formGrid.setHgap(10);
         formGrid.setVgap(10);
         formGrid.setStyle("-fx-alignment: center;");
+
         formGrid.add(new Label("Employee ID:"), 0, 0);
         TextField empIdField = new TextField();
         formGrid.add(empIdField, 1, 0);
@@ -63,8 +69,8 @@ public class EmployeeManagement extends Application {
         formGrid.add(jobTitleCombo, 7, 0);
 
         formGrid.add(new Label("Phone Number:"), 8, 0);
-        TextField ageField = new TextField();
-        formGrid.add(ageField, 9, 0);
+        TextField phoneField = new TextField();
+        formGrid.add(phoneField, 9, 0);
 
         formGrid.add(new Label("Email:"), 0, 1);
         TextField emailField = new TextField();
@@ -84,14 +90,14 @@ public class EmployeeManagement extends Application {
         formGrid.add(joinDatePicker, 7, 1);
 
         formGrid.add(new Label("Sex:"), 8, 1);
-        HBox empTypeBox = new HBox(10);
-        RadioButton fullTimeBtn = new RadioButton("Male");
-        RadioButton partTimeBtn = new RadioButton("Female");
-        ToggleGroup empTypeGroup = new ToggleGroup();
-        fullTimeBtn.setToggleGroup(empTypeGroup);
-        partTimeBtn.setToggleGroup(empTypeGroup);
-        empTypeBox.getChildren().addAll(fullTimeBtn, partTimeBtn);
-        formGrid.add(empTypeBox, 9, 1);
+        HBox empSex = new HBox(10);
+        RadioButton rbMale = new RadioButton("Male");
+        RadioButton rbFemale = new RadioButton("Female");
+        ToggleGroup empSexGroup = new ToggleGroup();
+        rbMale.setToggleGroup(empSexGroup);
+        rbFemale.setToggleGroup(empSexGroup);
+        empSex.getChildren().addAll(rbMale, rbFemale);
+        formGrid.add(empSex, 9, 1);
 
         // Add listener to departmentCombo to update job titles
         departmentCombo.setOnAction(event -> {
@@ -132,7 +138,7 @@ public class EmployeeManagement extends Application {
         HBox actionBox = new HBox(10);
         actionBox.setPadding(new Insets(10));
         actionBox.setAlignment(Pos.CENTER_LEFT);
-        Button newBtn = createButton("New", "#000000", "#FFFFFF");
+        Button newBtn = createButton("New", "lightblue", "#FFFFFF");
         Button saveBtn = createButton("Save", "#4CAF50", "#FFFFFF");
         Button deleteBtn = createButton("Delete", "#F44336", "#FFFFFF");
         Button updateBtn = createButton("Update", "#FF9800", "#FFFFFF");
@@ -149,38 +155,133 @@ public class EmployeeManagement extends Application {
 
         actionBox.getChildren().addAll(newBtn, saveBtn, deleteBtn, updateBtn, spacer, searchField, searchButton, sortCombo, loadBtn);
 
+        employeeData = FXCollections.observableArrayList();
+        table.setItems(employeeData);
+
+        newBtn.setOnAction(e -> {
+            empIdField.clear();
+            empNameField.clear();
+            empSexGroup.selectToggle(null);
+            departmentCombo.setValue(null);
+            jobTitleCombo.setValue(null);
+            phoneField.clear();
+            emailField.clear();
+            typeCombo.setValue(null);
+            salaryField.clear();
+            joinDatePicker.setValue(null);
+        });
+
+        saveBtn.setOnAction(e -> {
+            String idText = empIdField.getText();
+            String name = empNameField.getText();
+            String sex = rbMale.isSelected() ? "Male" : rbFemale.isSelected() ? "Female" : "";
+            String department = departmentCombo.getValue();
+            String jobTitle = jobTitleCombo.getValue();
+            String phoneText = phoneField.getText();
+            String email = emailField.getText();
+            String empType = typeCombo.getValue();
+            String salaryText = salaryField.getText();
+            String joinDateText = joinDatePicker.getValue().toString();
+
+            if(idText.isEmpty() || name.isEmpty() || sex.isEmpty() || department.isEmpty() || jobTitle.isEmpty() || phoneText.isEmpty() || email.isEmpty() || empType.isEmpty() || salaryText.isEmpty() || joinDateText.isEmpty()){
+                System.out.println("Please fill all the fields!");
+                return;
+            }
+
+            try {
+                int id = Integer.parseInt(idText);
+                int phone = Integer.parseInt(phoneText);
+                double salary = Double.parseDouble(salaryText);
+                int joinDate = Integer.parseInt(joinDateText);
+
+                Employee newEmployee = new Employee(id, name, sex, jobTitle, department, phone, email, empType,salary, joinDate);
+
+                boolean isSave = Database.saveEmployee(newEmployee);
+                if (isSave){
+                    employeeData.add(newEmployee);
+                    newBtn.fire();
+                } else {
+                    System.out.println("Failed to save employee.");
+                }
+            } catch (NumberFormatException ex){
+                System.out.println("Invalid id, phone, salary or join date format.");
+            }
+        });
+
+        deleteBtn.setOnAction(e -> {
+            Employee selectedEmployee = table.getSelectionModel().getSelectedItem();
+            if (selectedEmployee != null) {
+                boolean isDeleted = Database.deleteEmployee(selectedEmployee.getId());
+                if (isDeleted) {
+                    employeeData.remove(selectedEmployee);
+                }
+            }
+        });
+
+        deleteBtn.setOnAction(e -> {
+            Employee selectedEmployee = table.getSelectionModel().getSelectedItem();
+            if (selectedEmployee != null) {
+                boolean isDeleted = Database.deleteEmployee(selectedEmployee.getId());
+                if (isDeleted) {
+                    employeeData.remove(selectedEmployee);
+                }
+            }
+        });
+
+        updateBtn.setOnAction(e -> {
+            Employee selectedEmployee = table.getSelectionModel().getSelectedItem();
+            if (selectedEmployee != null) {
+                selectedEmployee.setId(Integer.parseInt(emailField.getText()));
+                selectedEmployee.setName(empNameField.getText());
+                selectedEmployee.setSex(rbMale.isSelected() ? "Male" : "Female");
+                selectedEmployee.setDepartment(departmentCombo.getValue());
+                selectedEmployee.setJobTitle(jobTitleCombo.getValue());
+                selectedEmployee.setPhoneNumber(Integer.parseInt(phoneField.getText()));
+                selectedEmployee.setEmail(emailField.getText());
+                selectedEmployee.setType(typeCombo.getTypeSelector());
+                selectedEmployee.setSalary(Double.parseDouble(salaryField.getText()));
+                selectedEmployee.setJoinDate(Integer.parseInt(joinDatePicker.getValue().toString()));
+
+                boolean isUpdated = Database.updateEmployee(selectedEmployee);
+                if (isUpdated) {
+                    table.refresh();
+                }
+            }
+        });
+
+
 // --- TABLE SECTION ---
-        TableView<Object> table = new TableView<>();
+        table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<Object, String> empIdColumn = new TableColumn<>("E.ID");
+        TableColumn<Employee, Integer> empIdColumn = new TableColumn<>("E.ID");
         empIdColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> empNameColumn = new TableColumn<>("E.Name");
+        TableColumn<Employee, String> empNameColumn = new TableColumn<>("E.Name");
         empNameColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> sexColumn = new TableColumn<>("Sex");
+        TableColumn<Employee, String> sexColumn = new TableColumn<>("Sex");
         sexColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> jobTitleColumn = new TableColumn<>("Job Title");
+        TableColumn<Employee, String> jobTitleColumn = new TableColumn<>("Job Title");
         jobTitleColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> departmentColumn = new TableColumn<>("Department");
+        TableColumn<Employee, String> departmentColumn = new TableColumn<>("Department");
         departmentColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> phoneColumn = new TableColumn<>("Phone.N");
+        TableColumn<Employee, Integer> phoneColumn = new TableColumn<>("Phone.N");
         phoneColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> emailColumn = new TableColumn<>("Email");
+        TableColumn<Employee, String> emailColumn = new TableColumn<>("Email");
         emailColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> empTypeColumn = new TableColumn<>("E.Type");
+        TableColumn<Employee, String> empTypeColumn = new TableColumn<>("E.Type");
         empTypeColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> salaryColumn = new TableColumn<>("Salary");
+        TableColumn<Employee, Double> salaryColumn = new TableColumn<>("Salary");
         salaryColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Object, String> joinDateColumn = new TableColumn<>("Join Date");
+        TableColumn<Employee, Integer> joinDateColumn = new TableColumn<>("Join Date");
         joinDateColumn.setResizable(true); // Make the column resizable
 
         table.getColumns().addAll(
