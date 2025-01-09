@@ -16,6 +16,9 @@ public class EmployeeManagement extends Application {
 
     private TableView<Employee> table;
     private ObservableList<Employee> employeeData;
+    private Label totalEmployeesLabel;
+    private Label fullTimeLabel;
+    private Label partTimeLabel;
 
     @Override
     public void start(Stage primaryStage) {
@@ -35,9 +38,12 @@ public class EmployeeManagement extends Application {
         summaryBox.setSpacing(20);
         HBox.setHgrow(summaryBox, Priority.ALWAYS);
 
-        VBox totalEmployees = createSummaryCard("Total Employees", "0", "#f8f9fa");
-        VBox fullTime = createSummaryCard("Full-time", "0", "#e8f5e9");
-        VBox partTime = createSummaryCard("Part-time", "0", "#fff9c4");
+        totalEmployeesLabel = new Label("0");
+        VBox totalEmployees = createSummaryCard("Total Employees", totalEmployeesLabel, "#f8f9fa");
+        fullTimeLabel = new Label("0");
+        VBox fullTime = createSummaryCard("Full-time", fullTimeLabel, "#e8f5e9");
+        partTimeLabel = new Label("0");
+        VBox partTime = createSummaryCard("Part-time", partTimeLabel, "#fff9c4");
 
         HBox.setHgrow(totalEmployees, Priority.ALWAYS);
         HBox.setHgrow(fullTime, Priority.ALWAYS);
@@ -144,19 +150,21 @@ public class EmployeeManagement extends Application {
         Button deleteBtn = createButton("Delete", "#F44336", "#FFFFFF");
         Button updateBtn = createButton("Update", "#FF9800", "#FFFFFF");
 
+        ComboBox<String> comboFill = new ComboBox<>();
+        comboFill.getItems().addAll("ID", "Name", "Department");
+        comboFill.setValue("ID");
         TextField searchField = new TextField();
         searchField.setPromptText("Search employees...");
         Button searchButton = new Button("🔍");
         ComboBox<String> sortCombo = new ComboBox<>();
-        sortCombo.getItems().addAll("Sort by Name", "Sort by Age", "Sort by Salary");
+        sortCombo.getItems().addAll("Sort by Name", "Sort by Salary");
         Button loadBtn = createButton("Load Data", "#000000", "#FFFFFF");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        actionBox.getChildren().addAll(newBtn, saveBtn, deleteBtn, updateBtn, spacer, searchField, searchButton, sortCombo, loadBtn);
 
-        employeeData = FXCollections.observableArrayList();
+        actionBox.getChildren().addAll(newBtn, saveBtn, deleteBtn, updateBtn, spacer, comboFill, searchField, searchButton, sortCombo, loadBtn);
 
         newBtn.setOnAction(e -> {
             empIdField.clear();
@@ -172,25 +180,23 @@ public class EmployeeManagement extends Application {
         });
 
         saveBtn.setOnAction(e -> {
-            String idText = empIdField.getText();
+            String id = empIdField.getText();
             String name = empNameField.getText();
             String sex = rbMale.isSelected() ? "Male" : rbFemale.isSelected() ? "Female" : "";
             String department = departmentCombo.getValue();
             String jobTitle = jobTitleCombo.getValue();
-            String phoneText = phoneField.getText();
+            String phone = phoneField.getText();
             String email = emailField.getText();
             String empType = typeCombo.getValue();
             String salaryText = salaryField.getText();
             String joinDateText = (joinDatePicker.getValue() != null) ? joinDatePicker.getValue().toString() : "";
 
-            if(idText.isEmpty() || name.isEmpty() || sex.isEmpty() || department == null || jobTitle == null || phoneText.isEmpty() || email.isEmpty() || empType == null || salaryText.isEmpty() || joinDateText.isEmpty()){
+            if(id.isEmpty() || name.isEmpty() || sex.isEmpty() || department == null || jobTitle == null || phone.isEmpty() || email.isEmpty() || empType == null || salaryText.isEmpty() || joinDateText.isEmpty()){
                 System.out.println("Please fill all the fields!");
                 return;
             }
 
             try {
-                int id = Integer.parseInt(idText);
-                int phone = Integer.parseInt(phoneText);
                 double salary = Double.parseDouble(salaryText);
 
                 Employee newEmployee = new Employee(id, name, sex, jobTitle, department, phone, email, empType,salary, joinDateText);
@@ -199,6 +205,7 @@ public class EmployeeManagement extends Application {
                 if (isSave){
                     employeeData.add(newEmployee);
                     newBtn.fire();
+                    updateSummary();
                 } else {
                     System.out.println("Failed to save employee.");
                 }
@@ -213,6 +220,7 @@ public class EmployeeManagement extends Application {
                 boolean isDeleted = Database.deleteEmployee(selectedEmployee.getId());
                 if (isDeleted) {
                     employeeData.remove(selectedEmployee);
+                    updateSummary();
                 }
             }
         });
@@ -220,12 +228,12 @@ public class EmployeeManagement extends Application {
         updateBtn.setOnAction(e -> {
             Employee selectedEmployee = table.getSelectionModel().getSelectedItem();
             if (selectedEmployee != null) {
-                selectedEmployee.setId(Integer.parseInt(emailField.getText()));
+                selectedEmployee.setId(emailField.getText());
                 selectedEmployee.setName(empNameField.getText());
                 selectedEmployee.setSex(rbMale.isSelected() ? "Male" : "Female");
                 selectedEmployee.setDepartment(departmentCombo.getValue());
                 selectedEmployee.setJobTitle(jobTitleCombo.getValue());
-                selectedEmployee.setPhoneNumber(Integer.parseInt(phoneField.getText()));
+                selectedEmployee.setPhoneNumber(phoneField.getText());
                 selectedEmployee.setEmail(emailField.getText());
                 selectedEmployee.setType(typeCombo.getValue());
                 selectedEmployee.setSalary(Double.parseDouble(salaryField.getText()));
@@ -242,17 +250,47 @@ public class EmployeeManagement extends Application {
             ObservableList<Employee> employees = Database.loadEmployees();
             employeeData.clear();
             employeeData.addAll(employees);
+            updateSummary();
+        });
+
+        searchButton.setOnAction(e -> {
+            String fillValue = searchField.getText().toLowerCase();
+            String fillType = comboFill.getValue();
+            table.setItems(employeeData.filtered(emp -> {
+                switch (fillType){
+                    case "ID":
+                        return emp.getId().toLowerCase().contains(fillValue);
+                    case "Name":
+                        return emp.getName().toLowerCase().contains(fillValue);
+                    case "Department":
+                        return emp.getDepartment().toLowerCase().contains(fillValue);
+                    default:
+                        return false;
+                }
+            }));
+        });
+
+        sortCombo.setOnAction(e -> {
+            String sortOption = sortCombo.getValue();
+            switch (sortOption){
+                case "Sort by Name":
+                    FXCollections.sort(employeeData, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+                    break;
+                case "Sort by Salary":
+                    FXCollections.sort(employeeData, (a, b) -> Double.compare(a.getSalary(), b.getSalary()));
+                    break;
+            }
         });
 
 // --- TABLE SECTION ---
         table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<Employee, Integer> empIdColumn = new TableColumn<>("E.ID");
+        TableColumn<Employee, Integer> empIdColumn = new TableColumn<>("ID");
         empIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         empIdColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Employee, String> empNameColumn = new TableColumn<>("E.Name");
+        TableColumn<Employee, String> empNameColumn = new TableColumn<>("Name");
         empNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         empNameColumn.setResizable(true); // Make the column resizable
 
@@ -268,16 +306,16 @@ public class EmployeeManagement extends Application {
         departmentColumn.setCellValueFactory(new PropertyValueFactory<>("department"));
         departmentColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Employee, Integer> phoneColumn = new TableColumn<>("Phone.N");
-        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
+        TableColumn<Employee, Integer> phoneColumn = new TableColumn<>("Phone");
+        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
         phoneColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, String> emailColumn = new TableColumn<>("Email");
         emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
         emailColumn.setResizable(true); // Make the column resizable
 
-        TableColumn<Employee, String> empTypeColumn = new TableColumn<>("E.Type");
-        empTypeColumn.setCellValueFactory(new PropertyValueFactory<>("empType"));
+        TableColumn<Employee, String> empTypeColumn = new TableColumn<>("Type");
+        empTypeColumn.setCellValueFactory(new PropertyValueFactory<>("employeeType"));
         empTypeColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, Double> salaryColumn = new TableColumn<>("Salary");
@@ -301,6 +339,7 @@ public class EmployeeManagement extends Application {
                 joinDateColumn
         );
 
+        employeeData = FXCollections.observableArrayList();
         table.setItems(employeeData);
 
         VBox.setVgrow(table, Priority.ALWAYS); // Ensure the table fills available space
@@ -315,14 +354,23 @@ public class EmployeeManagement extends Application {
 
     }
 
-    private VBox createSummaryCard(String title, String value, String bgColor) {
+    private void updateSummary() {
+        long total = employeeData.size();
+        long fullTimeCount = employeeData.stream().filter(emp -> "Full-Time".equals(emp.getEmployeeType())).count();
+        long partTimeCount = employeeData.stream().filter(emp -> "Part-Time".equals(emp.getEmployeeType())).count();
+
+        totalEmployeesLabel.setText(String.valueOf(total));
+        fullTimeLabel.setText(String.valueOf(fullTimeCount));
+        partTimeLabel.setText(String.valueOf(partTimeCount));
+    }
+
+    private VBox createSummaryCard(String title, Label valueLabel, String bgColor) {
         VBox box = new VBox(5);
         box.setPadding(new Insets(10));
         box.setAlignment(Pos.CENTER);
         box.setStyle(String.format("-fx-background-color: %s; -fx-border-color: lightgray; -fx-border-radius: 5;", bgColor));
         Label titleLabel = new Label(title);
         titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-        Label valueLabel = new Label(value);
         valueLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
         box.getChildren().addAll(titleLabel, valueLabel);
         return box;

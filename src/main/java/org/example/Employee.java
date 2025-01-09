@@ -1,35 +1,35 @@
 package org.example;
 
 public class Employee {
-    private int id;
+    private String id;
     private String name;
     private String jobTitle;
     private String department;
-    private int phoneNumber;
+    private String phoneNumber;
     private String email;
-    private String type;
+    private String employeeType;
     private double salary;
     private String  joinDate;
     private String sex;
 
-    public Employee(int id, String name, String sex, String jobTitle, String department, int phoneNumber, String email, String type, double salary, String joinDate) {
+    public Employee(String id, String name, String sex, String jobTitle, String department, String phoneNumber, String email, String employeeType, double salary, String joinDate) {
         this.id = id;
         this.name = name;
         this.jobTitle = jobTitle;
         this.department = department;
         this.phoneNumber = phoneNumber;
         this.email = email;
-        this.type = type;
+        this.employeeType = employeeType;
         this.salary = salary;
         this.joinDate = joinDate;
         this.sex = sex;
     }
 
 
-    public int getId() {
+    public String getId() {
         return id;
     }
-    public void setId(int id){
+    public void setId(String id){
         this.id = id;
     }
 
@@ -61,10 +61,10 @@ public class Employee {
         this.department = department;
     }
 
-    public int getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
-    public void setPhoneNumber(int phoneNumber){
+    public void setPhoneNumber(String phoneNumber){
         this.phoneNumber = phoneNumber;
     }
 
@@ -75,11 +75,11 @@ public class Employee {
         this.email = email;
     }
 
-    public String getType(){
-        return type;
+    public String getEmployeeType(){
+        return employeeType;
     }
-    public void setType(String type){
-        this.type = type;
+    public void setType(String employeeType){
+        this.employeeType = employeeType;
     }
 
     public double getSalary(){

@@ -1,6 +1,5 @@
 package org.example;
 
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -22,14 +21,14 @@ public class Database {
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(query)){
 
-            statement.setInt(1, employee.getId());
+            statement.setString(1, employee.getId());
             statement.setString(2, employee.getName());
             statement.setString(3, employee.getSex());
             statement.setString(4, employee.getJobTitle());
             statement.setString(5, employee.getDepartment());
-            statement.setInt(6, employee.getPhoneNumber());
+            statement.setString(6, employee.getPhoneNumber());
             statement.setString(7, employee.getEmail());
-            statement.setString(8, employee.getType());
+            statement.setString(8, employee.getEmployeeType());
             statement.setDouble(9, employee.getSalary());
             statement.setString(10, employee.getJoinDate());
 
@@ -43,13 +42,13 @@ public class Database {
         return false;
     }
 
-    public static boolean deleteEmployee (int id){
+    public static boolean deleteEmployee (String id){
         String query = "DELETE FROM Employees_homework2 WHERE emp_id = ?";
 
         try (Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement(query)){
 
-            statement.setInt(1, Integer.parseInt(String.valueOf(id)));
+            statement.setString(1, id);
 
             int rowAffect = statement.executeUpdate();
             return rowAffect > 0;
@@ -70,12 +69,12 @@ public class Database {
             statement.setString(2, employee.getSex());
             statement.setString(3, employee.getJobTitle());
             statement.setString(4, employee.getDepartment());
-            statement.setInt(5, employee.getPhoneNumber());
+            statement.setString(5, employee.getPhoneNumber());
             statement.setString(6, employee.getEmail());
-            statement.setString(7, employee.getType());
+            statement.setString(7, employee.getEmployeeType());
             statement.setDouble(8, employee.getSalary());
             statement.setString(9, employee.getJoinDate());
-            statement.setInt(10, employee.getId());
+            statement.setString(10, employee.getId());
 
             int rowAffect = statement.executeUpdate();
             return rowAffect > 0;
@@ -96,12 +95,12 @@ public class Database {
 
             while (resultSet.next()){
                 Employee employee = new Employee(
-                        resultSet.getInt("emp_id"),
+                        resultSet.getString("emp_id"),
                         resultSet.getString("emp_name"),
                         resultSet.getString("sex"),
                         resultSet.getString("job_title"),
                         resultSet.getString("department"),
-                        resultSet.getInt("phone"),
+                        resultSet.getString("phone"),
                         resultSet.getString("email"),
                         resultSet.getString("employee_type"),
                         resultSet.getDouble("salary"),
