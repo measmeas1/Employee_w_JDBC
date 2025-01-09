@@ -43,13 +43,13 @@ public class Database {
         return false;
     }
 
-    public static boolean deleteEmployee (String id){
+    public static boolean deleteEmployee (int id){
         String query = "DELETE FROM Employees_homework2 WHERE emp_id = ?";
 
         try (Connection connection = getConnection();
             PreparedStatement statement = connection.prepareStatement(query)){
 
-            statement.setInt(1, Integer.parseInt(id));
+            statement.setInt(1, Integer.parseInt(String.valueOf(id)));
 
             int rowAffect = statement.executeUpdate();
             return rowAffect > 0;
