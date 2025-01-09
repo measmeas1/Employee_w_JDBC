@@ -5,10 +5,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 
@@ -140,10 +137,70 @@ public class EmployeeManagement extends Application {
         Button deleteBtn = createButton("Delete", "#F44336", "#FFFFFF");
         Button updateBtn = createButton("Update", "#FF9800", "#FFFFFF");
 
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search employees...");
+        Button searchButton = new Button("🔍");
+        ComboBox<String> sortCombo = new ComboBox<>();
+        sortCombo.getItems().addAll("Sort by Name", "Sort by Age", "Sort by Salary");
+        Button loadBtn = createButton("Load Data", "#000000", "#FFFFFF");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        actionBox.getChildren().addAll(newBtn, saveBtn, deleteBtn, updateBtn, spacer, searchField, searchButton, sortCombo, loadBtn);
+
+// --- TABLE SECTION ---
+        TableView<Object> table = new TableView<>();
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<Object, String> empIdColumn = new TableColumn<>("E.ID");
+        empIdColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> empNameColumn = new TableColumn<>("E.Name");
+        empNameColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> sexColumn = new TableColumn<>("Sex");
+        sexColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> jobTitleColumn = new TableColumn<>("Job Title");
+        jobTitleColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> departmentColumn = new TableColumn<>("Department");
+        departmentColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> phoneColumn = new TableColumn<>("Phone.N");
+        phoneColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> emailColumn = new TableColumn<>("Email");
+        emailColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> empTypeColumn = new TableColumn<>("E.Type");
+        empTypeColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> salaryColumn = new TableColumn<>("Salary");
+        salaryColumn.setResizable(true); // Make the column resizable
+
+        TableColumn<Object, String> joinDateColumn = new TableColumn<>("Join Date");
+        joinDateColumn.setResizable(true); // Make the column resizable
+
+        table.getColumns().addAll(
+                empIdColumn,
+                empNameColumn,
+                sexColumn,
+                jobTitleColumn,
+                departmentColumn,
+                phoneColumn,
+                emailColumn,
+                empTypeColumn,
+                salaryColumn,
+                joinDateColumn
+        );
+
+        VBox.setVgrow(table, Priority.ALWAYS); // Ensure the table fills available space
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
         root.getChildren().add(header);
-        root.getChildren().addAll(summaryBox, formGrid);
+        root.getChildren().addAll(summaryBox, formGrid,actionBox, table);
 
         Scene scene = new Scene(root, 1400, 900);
         primaryStage.setScene(scene);
