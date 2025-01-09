@@ -7,6 +7,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -156,7 +157,6 @@ public class EmployeeManagement extends Application {
         actionBox.getChildren().addAll(newBtn, saveBtn, deleteBtn, updateBtn, spacer, searchField, searchButton, sortCombo, loadBtn);
 
         employeeData = FXCollections.observableArrayList();
-        table.setItems(employeeData);
 
         newBtn.setOnAction(e -> {
             empIdField.clear();
@@ -181,9 +181,9 @@ public class EmployeeManagement extends Application {
             String email = emailField.getText();
             String empType = typeCombo.getValue();
             String salaryText = salaryField.getText();
-            String joinDateText = joinDatePicker.getValue().toString();
+            String joinDateText = (joinDatePicker.getValue() != null) ? joinDatePicker.getValue().toString() : "";
 
-            if(idText.isEmpty() || name.isEmpty() || sex.isEmpty() || department.isEmpty() || jobTitle.isEmpty() || phoneText.isEmpty() || email.isEmpty() || empType.isEmpty() || salaryText.isEmpty() || joinDateText.isEmpty()){
+            if(idText.isEmpty() || name.isEmpty() || sex.isEmpty() || department == null || jobTitle == null || phoneText.isEmpty() || email.isEmpty() || empType == null || salaryText.isEmpty() || joinDateText.isEmpty()){
                 System.out.println("Please fill all the fields!");
                 return;
             }
@@ -192,9 +192,8 @@ public class EmployeeManagement extends Application {
                 int id = Integer.parseInt(idText);
                 int phone = Integer.parseInt(phoneText);
                 double salary = Double.parseDouble(salaryText);
-                int joinDate = Integer.parseInt(joinDateText);
 
-                Employee newEmployee = new Employee(id, name, sex, jobTitle, department, phone, email, empType,salary, joinDate);
+                Employee newEmployee = new Employee(id, name, sex, jobTitle, department, phone, email, empType,salary, joinDateText);
 
                 boolean isSave = Database.saveEmployee(newEmployee);
                 if (isSave){
@@ -218,16 +217,6 @@ public class EmployeeManagement extends Application {
             }
         });
 
-        deleteBtn.setOnAction(e -> {
-            Employee selectedEmployee = table.getSelectionModel().getSelectedItem();
-            if (selectedEmployee != null) {
-                boolean isDeleted = Database.deleteEmployee(selectedEmployee.getId());
-                if (isDeleted) {
-                    employeeData.remove(selectedEmployee);
-                }
-            }
-        });
-
         updateBtn.setOnAction(e -> {
             Employee selectedEmployee = table.getSelectionModel().getSelectedItem();
             if (selectedEmployee != null) {
@@ -238,9 +227,9 @@ public class EmployeeManagement extends Application {
                 selectedEmployee.setJobTitle(jobTitleCombo.getValue());
                 selectedEmployee.setPhoneNumber(Integer.parseInt(phoneField.getText()));
                 selectedEmployee.setEmail(emailField.getText());
-                selectedEmployee.setType(typeCombo.getTypeSelector());
+                selectedEmployee.setType(typeCombo.getValue());
                 selectedEmployee.setSalary(Double.parseDouble(salaryField.getText()));
-                selectedEmployee.setJoinDate(Integer.parseInt(joinDatePicker.getValue().toString()));
+                selectedEmployee.setJoinDate(joinDatePicker.getValue().toString());
 
                 boolean isUpdated = Database.updateEmployee(selectedEmployee);
                 if (isUpdated) {
@@ -249,39 +238,54 @@ public class EmployeeManagement extends Application {
             }
         });
 
+        loadBtn.setOnAction(e -> {
+            ObservableList<Employee> employees = Database.loadEmployees();
+            employeeData.clear();
+            employeeData.addAll(employees);
+        });
 
 // --- TABLE SECTION ---
         table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<Employee, Integer> empIdColumn = new TableColumn<>("E.ID");
+        empIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         empIdColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, String> empNameColumn = new TableColumn<>("E.Name");
+        empNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         empNameColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, String> sexColumn = new TableColumn<>("Sex");
+        sexColumn.setCellValueFactory(new PropertyValueFactory<>("sex"));
         sexColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, String> jobTitleColumn = new TableColumn<>("Job Title");
+        jobTitleColumn.setCellValueFactory(new PropertyValueFactory<>("jobTitle"));
         jobTitleColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, String> departmentColumn = new TableColumn<>("Department");
+        departmentColumn.setCellValueFactory(new PropertyValueFactory<>("department"));
         departmentColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, Integer> phoneColumn = new TableColumn<>("Phone.N");
+        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("phone"));
         phoneColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, String> emailColumn = new TableColumn<>("Email");
+        emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
         emailColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, String> empTypeColumn = new TableColumn<>("E.Type");
+        empTypeColumn.setCellValueFactory(new PropertyValueFactory<>("empType"));
         empTypeColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, Double> salaryColumn = new TableColumn<>("Salary");
+        salaryColumn.setCellValueFactory(new PropertyValueFactory<>("salary"));
         salaryColumn.setResizable(true); // Make the column resizable
 
         TableColumn<Employee, Integer> joinDateColumn = new TableColumn<>("Join Date");
+        joinDateColumn.setCellValueFactory(new PropertyValueFactory<>("joinDate"));
         joinDateColumn.setResizable(true); // Make the column resizable
 
         table.getColumns().addAll(
@@ -297,15 +301,18 @@ public class EmployeeManagement extends Application {
                 joinDateColumn
         );
 
+        table.setItems(employeeData);
+
         VBox.setVgrow(table, Priority.ALWAYS); // Ensure the table fills available space
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
         root.getChildren().add(header);
-        root.getChildren().addAll(summaryBox, formGrid,actionBox, table);
+        root.getChildren().addAll(summaryBox, formGrid, actionBox, table);
 
         Scene scene = new Scene(root, 1400, 900);
         primaryStage.setScene(scene);
         primaryStage.show();
+
     }
 
     private VBox createSummaryCard(String title, String value, String bgColor) {

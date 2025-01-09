@@ -9,10 +9,10 @@ public class Employee {
     private String email;
     private String type;
     private double salary;
-    private int joinDate;
+    private String  joinDate;
     private String sex;
 
-    public Employee(int id, String name, String sex, String jobTitle, String department, int phoneNumber, String email, String type, double salary, int joinDate) {
+    public Employee(int id, String name, String sex, String jobTitle, String department, int phoneNumber, String email, String type, double salary, String joinDate) {
         this.id = id;
         this.name = name;
         this.jobTitle = jobTitle;
@@ -89,10 +89,10 @@ public class Employee {
         this.salary = salary;
     }
 
-    public int getJoinDate(){
+    public String getJoinDate(){
         return joinDate;
     }
-    public void setJoinDate(int joinDate){
+    public void setJoinDate(String joinDate){
         this.joinDate = joinDate;
     }
 

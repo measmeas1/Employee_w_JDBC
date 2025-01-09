@@ -31,7 +31,7 @@ public class Database {
             statement.setString(7, employee.getEmail());
             statement.setString(8, employee.getType());
             statement.setDouble(9, employee.getSalary());
-            statement.setInt(10, employee.getJoinDate());
+            statement.setString(10, employee.getJoinDate());
 
             int rowsAffect = statement.executeUpdate();
             return rowsAffect > 0;
@@ -74,7 +74,7 @@ public class Database {
             statement.setString(6, employee.getEmail());
             statement.setString(7, employee.getType());
             statement.setDouble(8, employee.getSalary());
-            statement.setInt(9, employee.getJoinDate());
+            statement.setString(9, employee.getJoinDate());
             statement.setInt(10, employee.getId());
 
             int rowAffect = statement.executeUpdate();
@@ -86,7 +86,7 @@ public class Database {
     }
 
     //Fetch from database
-    public static ObservableList<Employee> loadEmployee(){
+    public static ObservableList<Employee> loadEmployees(){
         ObservableList<Employee> employees = FXCollections.observableArrayList();
         String query = "SELECT * FROM Employees_homework2";
 
@@ -105,7 +105,7 @@ public class Database {
                         resultSet.getString("email"),
                         resultSet.getString("employee_type"),
                         resultSet.getDouble("salary"),
-                        resultSet.getInt("join_date")
+                        resultSet.getString("join_date")
                 );
                 employees.add(employee);
             }
